@@ -43,7 +43,7 @@ DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 
 RAZORPAY_KEY_ID = 'rzp_test_S4Pj444YWhgCmx'
-RAZORPAY_KEY_SECRET = 'IVI8MUSu03th0bTXzvYXAemc'
+RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
