@@ -18,7 +18,6 @@ class ProductPagination(PageNumberPagination):
     max_page_size = 50
 
 
-
 class ProductListAPIView(APIView):
     permission_classes = [AllowAny]
 
@@ -30,16 +29,16 @@ class ProductListAPIView(APIView):
             products = products.filter(is_special=True)
 
         category = request.query_params.get("category")
-        if category:
-            products = products.filter(category__name=category)
-            
+        if category and category.lower() != "all":
+            products = products.filter(
+                category__name__iexact=category
+            )
+
         paginator = ProductPagination()
-        paginated_products = paginator.paginate_queryset(products,request)
+        paginated_products = paginator.paginate_queryset(products, request)
 
         serializer = ProductSerializer(paginated_products, many=True)
         return paginator.get_paginated_response(serializer.data)
-
-    
 
 
 class HomePageProductAPIView(APIView):
@@ -61,7 +60,7 @@ class HomePageProductAPIView(APIView):
             "chinese_products": chinese_serializer.data,
             "offer_products": offer_serializer.data,
         }
-
+        print(data)
         return Response(data, status=status.HTTP_200_OK)
 
 

@@ -124,35 +124,34 @@ class UserBlockAPIView(APIView):
     
     
     
-class OrderListAPIView(APIView):
+class AdminOrderListAPIView(APIView):
+    permission_classes = [IsAdminUser]
+
     def get(self, request):
-        # Use double underscores to traverse relationships
-        orders = OrderItem.objects.select_related('order__user').all()
-        serializer = OrderItemListSerializer(orders, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
+        orders = Order.objects.select_related("user").prefetch_related("items")
+        serializer = AdminOrderSerializer(orders, many=True)
+        return Response(serializer.data)
 
 # views.py
 class OrderStatusUpdateAPIView(APIView):
     def patch(self, request, pk):
         try:
-            # We fetch the OrderItem using the ID from React
-            order_item = OrderItem.objects.get(id=pk)
-            order = order_item.order  # Get the parent Order
+            # CHANGE: Fetch 'Order' instead of 'OrderItem'
+            order = Order.objects.get(id=pk)
             
             new_status = request.data.get('status')
             
-            # Check if the status is valid based on Order model choices
-            if new_status in dict(Order.ORDER_CHOICES):
+            # Use the choices defined in your Order model
+            valid_statuses = [choice[0] for choice in Order.ORDER_CHOICES]
+            
+            if new_status in valid_statuses:
                 order.order_status = new_status
                 order.save()
                 return Response({
-                    "id": pk, 
-                    "order_status": new_status
+                    "id": str(order.id), 
+                    "order_status": order.order_status
                 }, status=status.HTTP_200_OK)
                 
             return Response({"error": "Invalid status"}, status=status.HTTP_400_BAD_REQUEST)
-        except OrderItem.DoesNotExist:
-            return Response({"error": "OrderItem not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-        
+        except Order.DoesNotExist: # CHANGE: Catch Order.DoesNotExist
+            return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)

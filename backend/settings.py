@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'rest_framework',
     "django.contrib.sites",
     'drf_yasg',
+    'channels',
     'django_filters',
     'rest_framework_simplejwt',
     "cloudinary",
@@ -65,7 +66,8 @@ INSTALLED_APPS = [
     'products',
     'cart',
     'orders',
-    'wishlist'
+    'wishlist',
+    'notifications'
 ]
 
 SITE_ID = 1
@@ -93,9 +95,16 @@ SIMPLE_JWT ={
 }
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',  # React dev server
-    'http://127.0.0.1:8000',  
+    'http://127.0.0.1:5173',  
 ]
 CORS_ALLOW_ALL_ORIGINS =True
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:8000",   # Trust the backend port itself
+    "http://127.0.0.1:8000",
+]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  
 
@@ -136,6 +145,21 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+ASGI_APPLICATION = 'backend.asgi.application'
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis", 6379,0)],
+        },
+    },
+}
+
+# What this means:
+# All real-time messages go through Redis
+# Enables multi-user, multi-server communication
+
 
 
 # Database
@@ -147,8 +171,8 @@ DATABASES = {
         'NAME': 'gogrub_db',
         'USER': 'gogrub_user',
         'PASSWORD': 'gogrub000',
-        'HOST': 'localhost',
-        'PORT': 5100,
+        'HOST': 'db',
+        'PORT': 5432,
     }
 }
 
@@ -169,6 +193,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 # Internationalization

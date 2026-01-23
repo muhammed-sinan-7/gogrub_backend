@@ -1,0 +1,30 @@
+# Web Server & Framework
+django>=5.0
+djangorestframework
+django-cors-headers
+daphne
+channels
+channels-redis
+
+# Authentication
+djangorestframework_simplejwt
+
+# Database & Environment
+psycopg2-binary
+python-dotenv
+python-decouple
+
+# Utilities & Services
+django-filter
+cloudinary
+django-cloudinary-storage
+asgiref
+drf-yasg
+
+# ... (keep previous ones)
+# google-api-python-client
+google-auth
+google-auth-oauthlib
+# google-auth-httplib2
+requests
+razorpay

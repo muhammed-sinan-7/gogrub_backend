@@ -93,3 +93,25 @@ class OrderItemListSerializer(serializers.ModelSerializer):
             'price', 'subtotal', 'customer_name', 'customer_email', 'order_id',
             'created_at','payment_status','order_status','payment_method',
         ]
+    
+
+class AdminOrderSerializer(serializers.ModelSerializer):
+    items = OrderItemListSerializer(many=True, read_only=True)
+    customer_name = serializers.CharField(source="full_name")
+    customer_email = serializers.EmailField(source="user.email")
+    order_id = serializers.UUIDField(source="id")
+    price = serializers.DecimalField(source="total_amount", max_digits=10, decimal_places=2)
+
+    class Meta:
+        model = Order
+        fields = [
+            'order_id',
+            'customer_name',
+            'customer_email',
+            'price',
+            'order_status',
+            'payment_status',
+            'payment_method',
+            'created_at',
+            'items'
+        ]
