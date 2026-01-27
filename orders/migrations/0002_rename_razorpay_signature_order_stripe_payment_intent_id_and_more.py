@@ -6,21 +6,21 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orders', '0001_initial'),
+        ("orders", "0001_initial"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='order',
-            old_name='razorpay_signature',
-            new_name='stripe_payment_intent_id',
+            model_name="order",
+            old_name="razorpay_signature",
+            new_name="stripe_payment_intent_id",
         ),
         migrations.RemoveField(
-            model_name='order',
-            name='razorpay_order_id',
+            model_name="order",
+            name="razorpay_order_id",
         ),
         migrations.RemoveField(
-            model_name='order',
-            name='razorpay_payment_id',
+            model_name="order",
+            name="razorpay_payment_id",
         ),
     ]

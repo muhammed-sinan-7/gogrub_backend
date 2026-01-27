@@ -7,30 +7,51 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('products', '0001_initial'),
-        ('wishlist', '0001_initial'),
+        ("products", "0001_initial"),
+        ("wishlist", "0001_initial"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='wishlist',
-            old_name='added_at',
-            new_name='created_at',
+            model_name="wishlist",
+            old_name="added_at",
+            new_name="created_at",
         ),
         migrations.RemoveField(
-            model_name='wishlist',
-            name='product',
+            model_name="wishlist",
+            name="product",
         ),
         migrations.CreateModel(
-            name='WishlistItem',
+            name="WishlistItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('added_at', models.DateTimeField(auto_now_add=True)),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='products.product')),
-                ('wishlist', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='wishlist.wishlist')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("added_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="products.product",
+                    ),
+                ),
+                (
+                    "wishlist",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="items",
+                        to="wishlist.wishlist",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('wishlist', 'product')},
+                "unique_together": {("wishlist", "product")},
             },
         ),
     ]

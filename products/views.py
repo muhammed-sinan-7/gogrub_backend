@@ -1,16 +1,18 @@
-from django.shortcuts import render
-from rest_framework.views import APIView
-from .serializers import ProductSerializer
-from .models import Product, Category
-from rest_framework import status
-from cart.models import Cart, CartItem
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.shortcuts import get_object_or_404
-from rest_framework import generics, filters
 from django.db.models import Q
+from django.shortcuts import get_object_or_404, render
+from rest_framework import filters, generics, status
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from cart.models import Cart, CartItem
+
+from .models import Category, Product
+from .serializers import ProductSerializer
+
 # Create your views here.
+
 
 class ProductPagination(PageNumberPagination):
     page_size = 8
@@ -29,10 +31,8 @@ class ProductListAPIView(APIView):
             products = products.filter(is_special=True)
 
         category = request.query_params.get("category")
-        if category and category.lower() != "all":
-            products = products.filter(
-                category__name__iexact=category
-            )
+        if category:
+            products = products.filter(category__name=category)
 
         paginator = ProductPagination()
         paginated_products = paginator.paginate_queryset(products, request)

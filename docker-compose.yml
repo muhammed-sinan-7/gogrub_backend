@@ -1,24 +1,38 @@
-version: '3.8'
+version: "3.8"
 
 services:
   db:
     image: postgres:15
+    container_name: backend-db
     environment:
       POSTGRES_DB: gogrub_db
       POSTGRES_USER: gogrub_user
       POSTGRES_PASSWORD: gogrub000
     ports:
-      - "5100:5432"  # Maps local 5100 to container 5432
+      - "5100:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: backend-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
   redis:
     image: redis:alpine
+    container_name: backend-redis
     ports:
       - "6379:6379"
 
   web:
     build: .
+    container_name: backend-web
     command: daphne -b 0.0.0.0 -p 8000 backend.asgi:application
     volumes:
       - .:/app
@@ -27,7 +41,7 @@ services:
     env_file:
       - .env
     environment:
-      - DJANGO_SETTINGS_MODULE=backend.settings
+      DJANGO_SETTINGS_MODULE: backend.settings
     depends_on:
       - db
       - redis

@@ -1,8 +1,10 @@
-from django.db import models
 import uuid
+
 from django.conf import settings
+from django.db import models
 
 User = settings.AUTH_USER_MODEL
+
 
 class Order(models.Model):
     STATUS_CHOICES = (
@@ -10,12 +12,12 @@ class Order(models.Model):
         ("paid", "Paid"),
         ("cancelled", "Cancelled"),
     )
-    
+
     ORDER_CHOICES = (
-        ("processing","Processing"),
-        ("shipped","Shipped"),
-        ("delivered","Delivered"),
-        ("cancelled","Cancelled"),
+        ("processing", "Processing"),
+        ("shipped", "Shipped"),
+        ("delivered", "Delivered"),
+        ("cancelled", "Cancelled"),
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -26,7 +28,7 @@ class Order(models.Model):
     payment_status = models.CharField(
         max_length=20, choices=STATUS_CHOICES, default="pending"
     )
-    order_status = models.CharField(ORDER_CHOICES, default='processing',max_length=20)
+    order_status = models.CharField(ORDER_CHOICES, default="processing", max_length=20)
     full_name = models.CharField(max_length=50)
     phone = models.CharField(max_length=15)
     street = models.TextField()

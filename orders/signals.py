@@ -6,8 +6,6 @@
 # from users.models import CustomUser
 
 
-
-
 # @receiver(post_save, sender=Order)
 # def order_created(sender, instance, created, **kwargs):
 #     if not created:
