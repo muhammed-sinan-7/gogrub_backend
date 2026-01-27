@@ -27,7 +27,7 @@ AUTH_USER_MODEL = "users.CustomUser"
 
 load_dotenv()
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
-
+GEMINI_API_KEY = config("GEMINI_API_KEY")
 
 SECRET_KEY = config(
     "SECRET_KEY",
@@ -70,9 +70,14 @@ INSTALLED_APPS = [
     "cart",
     "orders",
     "wishlist",
+    'chatbot',
     "notifications.apps.NotificationsConfig",
 ]
 
+# Session Configuration
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_HTTPONLY = False
 # LOGGING = {
 #     'version': 1,
 #     'disable_existing_loggers': False,

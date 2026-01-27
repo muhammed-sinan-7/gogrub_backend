@@ -129,7 +129,7 @@ class ProfileAPIView(APIView):
         orders = Order.objects.filter(user=user)
 
         total_spent = (
-            orders.filter(payment_status="paid").aggregate(Sum("total_amount"))[
+            orders.filter(payment_status="paid").aggregate(Sum("price"))[
                 "total_amount__sum"
             ]
             or 0
