@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from products.models import Product,Category
 from users.serializers import USerSerializer
-
+from rest_framework.parsers import FormParser,MultiPartParser,JSONParser
 from .serializers import *
 
 # from
@@ -23,6 +23,8 @@ class CategoryListAPIView(APIView):
 
 
 class ProductListCreateAPIView(APIView):
+    # Ensure multipart/form-data and files are parsed into request.FILES
+    parser_classes = (JSONParser, MultiPartParser, FormParser)
     permission_classes = [IsAdminUser]
 
     def get(self, request):
@@ -31,20 +33,19 @@ class ProductListCreateAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        # The 'context' ensures the serializer has access to the request for images/user
+        print("🔥 PRODUCT CREATE HIT")
+        print("CONTENT TYPE:", request.content_type)
         serializer = ProductCreateUpdateSerialzier(
             data=request.data, context={"request": request}
         )
 
         if serializer.is_valid():
-            # Automatically assign the logged-in admin to the product
             product = serializer.save()
             return Response(
                 ProductListSerializer(product).data, status=status.HTTP_201_CREATED
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class ProductDetailAPIView(APIView):
     def get(self, request, id):

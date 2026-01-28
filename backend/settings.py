@@ -65,34 +65,21 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "cloudinary",
     "cloudinary_storage",
-    "users",
-    "products",
-    "cart",
-    "orders",
-    "wishlist",
-    'chatbot',
-    "notifications.apps.NotificationsConfig",
+    
+    'users',  
+    'orders',  
+    'products', 
+    'cart', 
+    'chatbot', 
+    'wishlist',  
+    "notifications.apps.NotificationsConfig",  
 ]
 
 # Session Configuration
-SESSION_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
-SESSION_COOKIE_HTTPONLY = False
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'handlers': {
-#         'console': {
-#             'class': 'logging.StreamHandler',
-#         },
-#     },
-#     'loggers': {
-#         'your_app_name.consumers': {  # ← Your app name
-#             'handlers': ['console'],
-#             'level': 'DEBUG',
-#         },
-#     },
-# }
+# SESSION_COOKIE_SAMESITE = 'None'
+# SESSION_COOKIE_SECURE = False  
+# SESSION_COOKIE_HTTPONLY = False
+
 
 SITE_ID = 1
 REST_FRAMEWORK = {

@@ -41,7 +41,7 @@ class ProductDetailSerialkizer(serializers.ModelSerializer):
 
 class ProductCreateUpdateSerialzier(serializers.ModelSerializer):
     category_name = serializers.StringRelatedField(source="category", read_only=True)
-
+    image = serializers.URLField()
     # price = serializers.DecimalField(max_digits=10, decimal_places=2)
     class Meta:
         model = Product
