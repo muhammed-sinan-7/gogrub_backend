@@ -194,3 +194,11 @@ class GoogleLoginAPIView(APIView):
             return Response(
                 {"detail": "Invalid Google token"}, status=status.HTTP_401_UNAUTHORIZED
             )
+
+
+
+
+from django.http import JsonResponse
+
+def health(request):
+    return JsonResponse({"status": "ok"})

@@ -37,8 +37,9 @@ schema_view = get_schema_view(
     permission_classes=[permissions.AllowAny],
 )
 
-
+from users.views import health
 urlpatterns = [
+    path("health/", health),
     path("admin/", admin.site.urls),
     path("api/auth/", include("users.urls")),
     path("api/", include("chatbot.urls")),

@@ -33,9 +33,15 @@ SECRET_KEY = config(
     "SECRET_KEY",
     default="django-insecure-6#06jp(3mc86dd58ungyoas4#cwh^w_v%!!htw7_l1_(bj=mkq",
 )
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",")
+DEBUG = False
 
-DEBUG = True
+ALLOWED_HOSTS = [
+    ".elb.amazonaws.com",
+    ".vercel.app",
+]
+
+
+
 
 
 cloudinary.config(
@@ -102,19 +108,33 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ALGORITHM": "HS256",
 }
+
+CORS_ALLOW_ALL_ORIGINS = False
+
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # React dev server
-    "http://127.0.0.1:5173",
+    "https://gogrubstore.vercel.app",
 ]
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:8000",  # Trust the backend port itself
-    "http://127.0.0.1:8000",
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.vercel\.app$",
 ]
 
+CORS_ALLOW_CREDENTIALS = True
+
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://gogrubstore.vercel.app",
+    "http://gogrub-alb-*.elb.amazonaws.com",
+]
+
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = False
+
+
+SECURE_SSL_REDIRECT = False
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com")
