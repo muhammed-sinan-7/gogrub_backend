@@ -30,3 +30,4 @@ requests
 razorpay
 google-genai
 google-api-python-client
+whitenoise

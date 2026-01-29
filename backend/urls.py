@@ -1,20 +1,3 @@
-"""
-URL configuration for backend project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -22,13 +5,13 @@ from django.urls import include, path, re_path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
-from rest_framework_simplejwt.views import TokenRefreshView
+from users.views import health
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="My API Documentation",
+        title="GoGrub API Documentation",
         default_version="v1",
-        description="API documentation for my project",
+        description="API documentation for GoGrub E-commerce",
         terms_of_service="https://www.example.com/terms/",
         contact=openapi.Contact(email="support@example.com"),
         license=openapi.License(name="MIT License"),
@@ -37,10 +20,15 @@ schema_view = get_schema_view(
     permission_classes=[permissions.AllowAny],
 )
 
-from users.views import health
 urlpatterns = [
-    path("health/", health),
+    # Health check endpoints (both with and without trailing slash)
+    path("health/", health, name="health"),
+    path("health", health, name="health-no-slash"),
+    
+    # Admin
     path("admin/", admin.site.urls),
+    
+    # API endpoints
     path("api/auth/", include("users.urls")),
     path("api/", include("chatbot.urls")),
     path("api/products/", include("products.urls")),
@@ -49,12 +37,20 @@ urlpatterns = [
     path("api/orders/", include("orders.urls")),
     path("api/admin/", include("admin.urls")),
     path("api/notifications/", include("notifications.urls")),
+    
+    # API documentation
     re_path(
         r"^swagger/$",
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui",
     ),
     re_path(
-        r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"
+        r"^redoc/$", 
+        schema_view.with_ui("redoc", cache_timeout=0), 
+        name="schema-redoc"
     ),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+]
+
+# Serve static files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

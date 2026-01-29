@@ -1,5 +1,6 @@
 # from drf_yasg import openapi
 from django.conf import settings
+from django.http import JsonResponse
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Sum
@@ -14,7 +15,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from django.http import HttpResponse
 from orders.models import Order, OrderItem
 from orders.serializers import OrderSerializer
 
@@ -198,7 +199,8 @@ class GoogleLoginAPIView(APIView):
 
 
 
-from django.http import JsonResponse
+
+
 
 def health(request):
     return JsonResponse({"status": "ok"})

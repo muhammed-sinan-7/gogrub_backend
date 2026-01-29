@@ -48,6 +48,7 @@ class ProductListCreateAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ProductDetailAPIView(APIView):
+    permission_classes = [IsAdminUser]
     def get(self, request, id):
         try:
             product = Product.objects.get(id=id)
@@ -61,7 +62,7 @@ class ProductDetailAPIView(APIView):
 
     def put(self, request, id):
         product = Product.objects.get(id=id)
-        serializer = ProductCreateUpdateSerialzier(product, data=request.data)
+        serializer = ProductCreateUpdateSerialzier(product, data=request.data,partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)

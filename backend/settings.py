@@ -33,15 +33,14 @@ SECRET_KEY = config(
     "SECRET_KEY",
     default="django-insecure-6#06jp(3mc86dd58ungyoas4#cwh^w_v%!!htw7_l1_(bj=mkq",
 )
+
+
+
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    ".elb.amazonaws.com",
-    ".vercel.app",
+    "*"
 ]
-
-
-
 
 
 cloudinary.config(
@@ -109,32 +108,30 @@ SIMPLE_JWT = {
     "ALGORITHM": "HS256",
 }
 
-CORS_ALLOW_ALL_ORIGINS = False
-
 CORS_ALLOWED_ORIGINS = [
-    "https://gogrubstore.vercel.app",
+    "https://gogrubstore.vercel.app"
 ]
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https:\/\/.*\.vercel\.app$",
-]
+CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOW_CREDENTIALS = True
 
-
 CSRF_TRUSTED_ORIGINS = [
+    "https://api.gogrub.online",
     "https://gogrubstore.vercel.app",
-    "http://gogrub-alb-*.elb.amazonaws.com",
 ]
 
-
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = False
+
 USE_X_FORWARDED_HOST = True
 
+SESSION_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = False
+
+CSRF_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SECURE = True
 
 
-SECURE_SSL_REDIRECT = False
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com")
@@ -148,6 +145,8 @@ DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@ecommerce.com
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -155,6 +154,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
 
 ROOT_URLCONF = "backend.urls"
 
@@ -180,7 +180,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("redis", 6379, 0)],
+            "hosts": [(os.getenv("REDIS_HOST"), 6379, 0)],
         },
     },
 }
@@ -196,13 +196,14 @@ CHANNEL_LAYERS = {
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "gogrub_db",
-        "USER": "gogrub_user",
-        "PASSWORD": "gogrub000",
-        "HOST": "db",
-        "PORT": 5432,
+        "NAME": os.environ["DB_NAME"],
+        "USER": os.environ["DB_USER"],
+        "PASSWORD": os.environ["DB_PASSWORD"],
+        "HOST": os.environ["DB_HOST"], 
+        "PORT": "5432",
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -241,3 +242,5 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
