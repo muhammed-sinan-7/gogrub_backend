@@ -4,7 +4,10 @@
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "512",
   "memory": "1024",
+
   "executionRoleArn": "arn:aws:iam::350973055420:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::350973055420:role/ecsTaskRole",
+
   "containerDefinitions": [
     {
       "name": "backend",
@@ -15,9 +18,6 @@
           "containerPort": 8000,
           "protocol": "tcp"
         }
-      ],
-      "environment": [
-        { "name": "DJANGO_SETTINGS_MODULE", "value": "backend.settings.production" }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
