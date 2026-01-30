@@ -56,4 +56,4 @@ jobs:
         task-definition: ecs-task-def.json
         service: gogrub-backend-service
         cluster: gogrub-cluster
-        wait-for-service-stability: true
+        wait-for-service-stability: false
