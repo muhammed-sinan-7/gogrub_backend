@@ -10,9 +10,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-
     items = OrderItemSerializer(many=True, read_only=True)
-    order_status = serializers.ReadOnlyField(source="order.order_status")
 
     class Meta:
         model = Order
@@ -21,7 +19,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "total_amount",
             "payment_status",
             "payment_method",
-            'order_status',
+            "order_status",
             "created_at",
             "items",
         ]
