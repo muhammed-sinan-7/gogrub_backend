@@ -30,11 +30,22 @@ jobs:
 
     - name: Build, tag, and push Docker image
       id: build-image
+      shell: bash
       run: |
-        IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest
-        docker build -t $IMAGE_URI .
-        docker push $IMAGE_URI
-        echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
+        set -e
+    
+        IMAGE_URI="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest"
+    
+        echo "Building image: $IMAGE_URI"
+    
+        docker buildx build \
+          --platform linux/amd64 \
+          -t "$IMAGE_URI" \
+          --push \
+          .
+        
+        echo "image=$IMAGE_URI" >> "$GITHUB_OUTPUT"
+
 
 
     - name: Render ECS task definition
