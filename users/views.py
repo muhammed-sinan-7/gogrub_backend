@@ -126,36 +126,40 @@ class ProfileAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user = request.user
-        orders = Order.objects.filter(user=user)
+        try:
+            user = request.user
+            orders = Order.objects.filter(user=user)
 
-        total_spent = (
-            orders.filter(payment_status="paid").aggregate(Sum("price"))[
-                "total_amount__sum"
-            ]
-            or 0
-        )
+            total_spent = (
+                orders.filter(payment_status="paid")
+                .aggregate(total_spent=Sum("price"))
+                .get("total_spent", 0)
+                or 0
+            )
 
-        order_data = OrderSerializer(orders, many=True).data
+            order_data = OrderSerializer(orders, many=True).data
 
-        return Response(
-            {
-                "user": {
-                    "id": user.id,
-                    "fullname": (
-                        user.fullname if hasattr(user, "fullname") else user.username
-                    ),
-                    "email": user.email,
+            return Response(
+                {
+                    "user": {
+                        "id": user.id,
+                        "fullname": getattr(user, "fullname", None),
+                        "email": user.email,
+                    },
+                    "orders": order_data,
+                    "stats": {
+                        "total_orders": orders.count(),
+                        "total_spent": float(total_spent),
+                    },
+                    "last_address": orders.first().street if orders.exists() else None,
                 },
-                "orders": order_data,
-                "stats": {
-                    "total_orders": orders.count(),
-                    "total_spent": float(total_spent),
-                },
-                "last_address": orders.first().street if orders.exists() else None,
-            },
-            status=status.HTTP_200_OK,
-        )
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {"detail": "Failed to load profile"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class GoogleLoginAPIView(APIView):
