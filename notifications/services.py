@@ -9,22 +9,23 @@ logger = logging.getLogger(__name__)
 
 
 def notify_user(user, title, message):
-    logger.info(
-        "notify_user called for user=%s title=%s", getattr(user, "id", user), title
-    )
+    try:
+        notification = Notification.objects.create(
+            user=user,
+            title=title,
+            message=message
+        )
 
-    notification = Notification.objects.create(user=user, title=title, message=message)
-
-    logger.info("created notification id=%s for user=%s", notification.id, user.id)
-
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        f"user_{user.id}",
-        {
-            "type": "send_notification",
-            "id": str(notification.id),
-            "title": notification.title,
-            "message": notification.message,
-            "created_at": notification.created_at.isoformat(),
-        },
-    )
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"user_{user.id}",
+            {
+                "type": "send_notification",
+                "id": str(notification.id),
+                "title": notification.title,
+                "message": notification.message,
+                "created_at": notification.created_at.isoformat(),
+            },
+        )
+    except Exception as e:
+        logger.exception("Notification failed but order continues")

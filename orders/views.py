@@ -70,35 +70,62 @@ class CheckoutPreviewAPIView(APIView):
             status=status.HTTP_200_OK,
         )
 
+from django.db import transaction
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+import logging
+
+logger = logging.getLogger(__name__)
 
 class CreateOrderAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         try:
-            with transaction.atomic():  # 🔥 START ATOMIC BLOCK
+            mode = request.data.get("mode")
+            payment_method = request.data.get("payment_method")
+            address = request.data.get("address")
 
-                mode = request.data.get("mode")
-                payment_method = request.data.get("payment_method")
-                address = request.data.get("address")
+            items = []
+            total = 0
 
-                items = []
-                total = 0
+            # ---------- BUILD ITEMS ----------
+            if mode == "buy_now":
+                product = Product.objects.get(id=request.data["product_id"])
+                qty = int(request.data["quantity"])
+                subtotal = product.price * qty
+                total = subtotal
+                items.append((product, qty, subtotal))
 
-                if mode == "buy_now":
-                    product = Product.objects.get(id=request.data["product_id"])
-                    qty = int(request.data["quantity"])
-                    subtotal = product.price * qty
-                    total = subtotal
-                    items.append((product, qty, subtotal))
-                else:
-                    cart = Cart.objects.get(user=request.user)
-                    for item in cart.items.select_related("product"):
-                        subtotal = item.price * item.quantity
-                        total += subtotal
-                        items.append((item.product, item.quantity, subtotal))
+            else:
+                cart = Cart.objects.filter(user=request.user).first()
+                if not cart:
+                    return Response(
+                        {"error": "Cart not found"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
-                # 🔥 Create Order
+                for item in cart.items.select_related("product"):
+                    subtotal = item.price * item.quantity
+                    total += subtotal
+                    items.append((item.product, item.quantity, subtotal))
+
+            # ---------- 🔴 CRITICAL GUARD ----------
+            if not items:
+                return Response(
+                    {"error": "Cart is empty"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            logger.info(
+                f"ORDER CREATE user={request.user.id} "
+                f"items={len(items)} total={total} mode={mode}"
+            )
+
+            # ---------- ATOMIC DB WRITE ----------
+            with transaction.atomic():
                 order = Order.objects.create(
                     user=request.user,
                     total_amount=total,
@@ -110,7 +137,6 @@ class CreateOrderAPIView(APIView):
                     zip_code=address["zip"],
                 )
 
-                # 🔥 Create OrderItems
                 for product, qty, subtotal in items:
                     OrderItem.objects.create(
                         order=order,
@@ -122,20 +148,20 @@ class CreateOrderAPIView(APIView):
                         subtotal=subtotal,
                     )
 
-                # 🔥 COD FLOW
+                # ---------- COD ----------
                 if payment_method == "cod":
                     order.payment_status = "pending"
                     order.save()
 
                     if mode == "cart":
-                        Cart.objects.get(user=request.user).items.all().delete()
+                        cart.items.all().delete()
 
                     return Response(
-                        {"order_id": str(order.id), "cod": True, "success": True},
+                        {"success": True, "order_id": str(order.id), "cod": True},
                         status=status.HTTP_200_OK,
                     )
 
-                # 🔥 ONLINE PAYMENT FLOW
+                # ---------- RAZORPAY ----------
                 amount_in_paise = int(total * 100)
 
                 razorpay_order = razorpay_client.order.create(
@@ -152,6 +178,7 @@ class CreateOrderAPIView(APIView):
 
                 return Response(
                     {
+                        "success": True,
                         "order_id": str(order.id),
                         "razorpay_order_id": razorpay_order["id"],
                         "razorpay_key": settings.RAZORPAY_KEY_ID,
@@ -168,7 +195,7 @@ class CreateOrderAPIView(APIView):
                 )
 
         except Exception as e:
-            # 🔥 NOTHING IS SAVED IF ANY ERROR OCCURS
+            logger.exception("ORDER CREATE FAILED")
             return Response(
                 {"error": "Order creation failed", "details": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
