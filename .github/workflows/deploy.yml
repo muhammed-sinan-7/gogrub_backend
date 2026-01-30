@@ -6,9 +6,6 @@ on:
 
 env:
   AWS_REGION: ap-south-1
-  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-  ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
-  ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
 
 jobs:
   deploy:
@@ -23,30 +20,28 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+        aws-region: ${{ secrets.AWS_REGION }}
 
     - name: Login to Amazon ECR
       uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Build, tag, and push Docker image
+    - name: Build and push Docker image (FIXED)
       id: build-image
       shell: bash
       run: |
         set -e
-    
-        IMAGE_URI="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest"
-    
-        echo "Building image: $IMAGE_URI"
-    
+
+        IMAGE_URI="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest"
+
+        echo "IMAGE_URI=$IMAGE_URI"
+
         docker buildx build \
           --platform linux/amd64 \
           -t "$IMAGE_URI" \
           --push \
           .
-        
+
         echo "image=$IMAGE_URI" >> "$GITHUB_OUTPUT"
-
-
 
     - name: Render ECS task definition
       uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -59,6 +54,6 @@ jobs:
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: ecs-task-def.json
-        service: ${{ env.ECS_SERVICE }}
-        cluster: ${{ env.ECS_CLUSTER }}
+        service: gogrub-backend-service
+        cluster: gogrub-cluster
         wait-for-service-stability: true
