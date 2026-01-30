@@ -41,19 +41,18 @@ class ProductDetailSerialkizer(serializers.ModelSerializer):
 
 class ProductCreateUpdateSerialzier(serializers.ModelSerializer):
     category_name = serializers.PrimaryKeyRelatedField(queryset = Category.objects.all())
-    image = serializers.URLField()
-    # price = serializers.DecimalField(max_digits=10, decimal_places=2)
+   
     class Meta:
         model = Product
         fields = [
+            "id",
             "name",
             "price",
             "category",
-            "category_name",
-            "is_special",
-            "is_available",
             "description",
             "image",
+            "is_special",
+            "is_available",
         ]
 
     def validate_price(self, value):

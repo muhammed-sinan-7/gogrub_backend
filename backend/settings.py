@@ -33,7 +33,8 @@ SECRET_KEY = config(
     "SECRET_KEY",
     default="django-insecure-6#06jp(3mc86dd58ungyoas4#cwh^w_v%!!htw7_l1_(bj=mkq",
 )
-
+REDIS_HOST = os.getenv("REDIS_HOST", "127.0.0.1")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 
 
 DEBUG = False
@@ -180,7 +181,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [(os.getenv("REDIS_HOST"), 6379, 0)],
+             "hosts": [(REDIS_HOST, REDIS_PORT)],
         },
     },
 }

@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from django.db import transaction
 from cart.models import Cart
 from products.models import Product
 
@@ -75,90 +75,105 @@ class CreateOrderAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        mode = request.data.get("mode")
-        payment_method = request.data.get("payment_method")
-        address = request.data.get("address")
+        try:
+            with transaction.atomic():  # 🔥 START ATOMIC BLOCK
 
-        items = []
-        total = 0
+                mode = request.data.get("mode")
+                payment_method = request.data.get("payment_method")
+                address = request.data.get("address")
 
-        if mode == "buy_now":
-            product = Product.objects.get(id=request.data["product_id"])
-            qty = int(request.data["quantity"])
-            subtotal = product.price * qty
-            total = subtotal
-            items.append((product, qty, subtotal))
-        else:
-            cart = Cart.objects.get(user=request.user)
-            for item in cart.items.select_related("product"):
-                subtotal = item.price * item.quantity
-                total += subtotal
-                items.append((item.product, item.quantity, subtotal))
+                items = []
+                total = 0
 
-        order = Order.objects.create(
-            user=request.user,
-            total_amount=total,
-            payment_method=payment_method,
-            full_name=address["fullName"],
-            phone=address["phone"],
-            street=address["street"],
-            city=address["city"],
-            zip_code=address["zip"],
-        )
+                if mode == "buy_now":
+                    product = Product.objects.get(id=request.data["product_id"])
+                    qty = int(request.data["quantity"])
+                    subtotal = product.price * qty
+                    total = subtotal
+                    items.append((product, qty, subtotal))
+                else:
+                    cart = Cart.objects.get(user=request.user)
+                    for item in cart.items.select_related("product"):
+                        subtotal = item.price * item.quantity
+                        total += subtotal
+                        items.append((item.product, item.quantity, subtotal))
 
-        for product, qty, subtotal in items:
-            OrderItem.objects.create(
-                order=order,
-                product_id=product.id,
-                product_name=product.name,
-                product_image=product.image,
-                price=product.price,
-                quantity=qty,
-                subtotal=subtotal,
-            )
+                # 🔥 Create Order
+                order = Order.objects.create(
+                    user=request.user,
+                    total_amount=total,
+                    payment_method=payment_method,
+                    full_name=address["fullName"],
+                    phone=address["phone"],
+                    street=address["street"],
+                    city=address["city"],
+                    zip_code=address["zip"],
+                )
 
-        if payment_method == "cod":
-            order.payment_status = "pending"
-            order.save()
+                # 🔥 Create OrderItems
+                for product, qty, subtotal in items:
+                    OrderItem.objects.create(
+                        order=order,
+                        product_id=product.id,
+                        product_name=product.name,
+                        product_image=product.image,
+                        price=product.price,
+                        quantity=qty,
+                        subtotal=subtotal,
+                    )
 
-            if mode == "cart":
-                Cart.objects.get(user=request.user).items.all().delete()
+                # 🔥 COD FLOW
+                if payment_method == "cod":
+                    order.payment_status = "pending"
+                    order.save()
 
+                    if mode == "cart":
+                        Cart.objects.get(user=request.user).items.all().delete()
+
+                    return Response(
+                        {"order_id": str(order.id), "cod": True, "success": True},
+                        status=status.HTTP_200_OK,
+                    )
+
+                # 🔥 ONLINE PAYMENT FLOW
+                amount_in_paise = int(total * 100)
+
+                razorpay_order = razorpay_client.order.create(
+                    {
+                        "amount": amount_in_paise,
+                        "currency": "INR",
+                        "receipt": f"ord_{order.id.hex}",
+                        "payment_capture": "1",
+                    }
+                )
+
+                order.razorpay_order_id = razorpay_order["id"]
+                order.save()
+
+                return Response(
+                    {
+                        "order_id": str(order.id),
+                        "razorpay_order_id": razorpay_order["id"],
+                        "razorpay_key": settings.RAZORPAY_KEY_ID,
+                        "amount": amount_in_paise,
+                        "currency": "INR",
+                        "name": "Your Store Name",
+                        "description": f"Order #{order.id}",
+                        "prefill": {
+                            "name": address["fullName"],
+                            "contact": address["phone"],
+                        },
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
+        except Exception as e:
+            # 🔥 NOTHING IS SAVED IF ANY ERROR OCCURS
             return Response(
-                {"order_id": str(order.id), "cod": True, "success": True},
-                status=status.HTTP_200_OK,
+                {"error": "Order creation failed", "details": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-        amount_in_paise = int(total * 100)
-
-        razorpay_order = razorpay_client.order.create(
-            {
-                "amount": amount_in_paise,
-                "currency": "INR",
-                "receipt": f"ord_{order.id.hex}",
-                "payment_capture": "1",
-            }
-        )
-
-        order.razorpay_order_id = razorpay_order["id"]
-        order.save()
-
-        return Response(
-            {
-                "order_id": str(order.id),
-                "razorpay_order_id": razorpay_order["id"],
-                "razorpay_key": settings.RAZORPAY_KEY_ID,
-                "amount": amount_in_paise,
-                "currency": "INR",
-                "name": "Your Store Name",
-                "description": f"Order #{order.id}",
-                "prefill": {
-                    "name": address["fullName"],
-                    "contact": address["phone"],
-                },
-            },
-            status=status.HTTP_200_OK,
-        )
 
 
 @method_decorator(csrf_exempt, name="dispatch")
