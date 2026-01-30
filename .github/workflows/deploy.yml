@@ -36,6 +36,7 @@ jobs:
         docker push $IMAGE_URI
         echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
 
+
     - name: Render ECS task definition
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
