@@ -44,7 +44,7 @@ class ProductCreateUpdateSerialzier(serializers.ModelSerializer):
         source="category.name",
         read_only=True
     )
-     category = serializers.PrimaryKeyRelatedField(
+    category = serializers.PrimaryKeyRelatedField(
         queryset=Category.objects.all()
     )
    
