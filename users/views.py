@@ -18,10 +18,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.http import HttpResponse
 from orders.models import Order, OrderItem
 from orders.serializers import OrderSerializer
-
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import CustomUser
 from .serializers import LoginSerializer, RegisterSerializer, USerSerializer
-
+from django.contrib.auth import authenticate
 
 class PasswordResetRequestView(APIView):
     def post(self, request):
@@ -93,31 +93,29 @@ class RegisterAPIView(APIView):
 
 
 class LoginAPIView(APIView):
-    serializer_class = LoginSerializer
+    permission_classes = []
 
-    @swagger_auto_schema(
-        request_body=LoginSerializer, responses={200: "Login successful"}
-    )
     def post(self, request):
-        serializer = LoginSerializer(data=request.data, context={"request": request})
-        serializer.is_valid(raise_exception=True)
-
-        user = serializer.validated_data["user"]
-        refresh = RefreshToken.for_user(user)
-
-        return Response(
-            {
-                "access": str(refresh.access_token),
-                "refresh": str(refresh),
-                "user": {
-                    "id": user.id,
-                    "email": user.email,
-                    "fullname": user.fullname,
-                    "is_staff": user.is_staff,
-                },
-            },
+        user = authenticate(
+            email=request.data.get("email"),
+            password=request.data.get("password"),
         )
 
+        if not user:
+            return Response({"detail": "Invalid credentials"}, status=401)
+
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "fullname": getattr(user, "fullname", None),
+                "is_staff": user.is_staff,
+            }
+        }, status=200)
 
 # class LogoutAPIView(APIView):
 
@@ -126,40 +124,36 @@ class ProfileAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        try:
-            user = request.user
-            orders = Order.objects.filter(user=user)
+        user = request.user
+        orders = Order.objects.filter(user=user)
 
-            total_spent = (
-                orders.filter(payment_status="paid")
-                .aggregate(total_spent=Sum("price"))
-                .get("total_spent", 0)
-                or 0
-            )
+        total_spent = (
+            orders.filter(payment_status="paid")
+            .aggregate(total_spent=Sum("total_amount"))
+            .get("total_spent")
+            or 0
+        )
 
-            order_data = OrderSerializer(orders, many=True).data
+        order_data = OrderSerializer(orders, many=True).data
 
-            return Response(
-                {
-                    "user": {
-                        "id": user.id,
-                        "fullname": getattr(user, "fullname", None),
-                        "email": user.email,
-                    },
-                    "orders": order_data,
-                    "stats": {
-                        "total_orders": orders.count(),
-                        "total_spent": float(total_spent),
-                    },
-                    "last_address": orders.first().street if orders.exists() else None,
+        last_order = orders.first()
+
+        return Response(
+            {
+                "user": {
+                    "id": user.id,
+                    "fullname": getattr(user, "fullname", None),
+                    "email": user.email,
                 },
-                status=status.HTTP_200_OK,
-            )
-        except Exception as e:
-            return Response(
-                {"detail": "Failed to load profile"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+                "orders": order_data,
+                "stats": {
+                    "total_orders": orders.count(),
+                    "total_spent": float(total_spent),
+                },
+                "last_address": last_order.street if last_order else None,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class GoogleLoginAPIView(APIView):
@@ -208,3 +202,13 @@ class GoogleLoginAPIView(APIView):
 
 def health(request):
     return JsonResponse({"status": "ok"})
+
+# users/views.py
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+@api_view(["GET"])
+def version(request):
+    return Response({
+        "version": "users-auth-2026-01-31-ecs-v1"
+    })

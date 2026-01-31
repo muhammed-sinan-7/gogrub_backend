@@ -40,7 +40,10 @@ class ProductDetailSerialkizer(serializers.ModelSerializer):
 
 
 class ProductCreateUpdateSerialzier(serializers.ModelSerializer):
-    category_name = serializers.PrimaryKeyRelatedField(queryset = Category.objects.all())
+    category_name = serializers.CharField(
+        source="category.name",
+        read_only=True
+    )
    
     class Meta:
         model = Product
@@ -49,6 +52,7 @@ class ProductCreateUpdateSerialzier(serializers.ModelSerializer):
             "name",
             "price",
             "category",
+            "category_name",
             "description",
             "image",
             "is_special",

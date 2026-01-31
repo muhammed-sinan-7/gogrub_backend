@@ -1,10 +1,10 @@
 from django.db.models import Q
 # from django.shortcuts import render
 from rest_framework import status
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser,IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from products.models import Product,Category
 from users.serializers import USerSerializer
 from rest_framework.parsers import FormParser,MultiPartParser,JSONParser
@@ -49,6 +49,7 @@ class ProductListCreateAPIView(APIView):
 
 class ProductDetailAPIView(APIView):
     permission_classes = [IsAdminUser]
+    authentication_classes = [JWTAuthentication]
     def get(self, request, id):
         try:
             product = Product.objects.get(id=id)
@@ -125,6 +126,7 @@ class UserBlockAPIView(APIView):
 
 
 class AdminOrderListAPIView(APIView):
+    authentication_classes=[JWTAuthentication]
     permission_classes = [IsAdminUser]
 
     def get(self, request):
@@ -135,6 +137,8 @@ class AdminOrderListAPIView(APIView):
 
 # views.py
 class OrderStatusUpdateAPIView(APIView):
+    authentication_classes=[JWTAuthentication]
+    permission_classes =[IsAuthenticated]
     def patch(self, request, pk):
         try:
             # CHANGE: Fetch 'Order' instead of 'OrderItem'

@@ -8,6 +8,7 @@ from .views import (
     PasswordResetRequestView,
     ProfileAPIView,
     RegisterAPIView,
+    version
 )
 
 urlpatterns = [
@@ -18,4 +19,5 @@ urlpatterns = [
     path("password_reset/", PasswordResetRequestView.as_view()),
     path("password_reset_confirm/", PasswordResetConfirmView.as_view()),
     path("google/", GoogleLoginAPIView.as_view()),
+    path('version/',version)
 ]
