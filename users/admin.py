@@ -9,6 +9,8 @@ from wishlist.models import Wishlist, WishlistItem
 
 from .models import CustomUser
 
+admin.site.site_header = "GoGrub Admin (CI/CD Test)"
+admin.site.site_title = "GoGrub Admin"
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
