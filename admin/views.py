@@ -99,7 +99,7 @@ class UserListAPIView(APIView):
             )
 
         serializer = USerSerializer(users, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data,status=status.HTTP_200_OK)
 
 
 class UserBlockAPIView(APIView):
@@ -132,7 +132,7 @@ class AdminOrderListAPIView(APIView):
     def get(self, request):
         orders = Order.objects.select_related("user").prefetch_related("items")
         serializer = AdminOrderSerializer(orders, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data,status=status.HTTP_200_OK)
 
 
 # views.py
@@ -141,12 +141,12 @@ class OrderStatusUpdateAPIView(APIView):
     permission_classes =[IsAuthenticated]
     def patch(self, request, pk):
         try:
-            # CHANGE: Fetch 'Order' instead of 'OrderItem'
+          
             order = Order.objects.get(id=pk)
 
             new_status = request.data.get("status")
 
-            # Use the choices defined in your Order model
+            
             valid_statuses = [choice[0] for choice in Order.ORDER_CHOICES]
 
             if new_status in valid_statuses:
@@ -160,7 +160,7 @@ class OrderStatusUpdateAPIView(APIView):
             return Response(
                 {"error": "Invalid status"}, status=status.HTTP_400_BAD_REQUEST
             )
-        except Order.DoesNotExist:  # CHANGE: Catch Order.DoesNotExist
+        except Order.DoesNotExist:  
             return Response(
                 {"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND
             )
