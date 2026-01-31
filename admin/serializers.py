@@ -44,6 +44,9 @@ class ProductCreateUpdateSerialzier(serializers.ModelSerializer):
         source="category.name",
         read_only=True
     )
+     category = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all()
+    )
    
     class Meta:
         model = Product
