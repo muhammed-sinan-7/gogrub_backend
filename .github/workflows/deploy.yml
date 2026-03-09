@@ -44,6 +44,7 @@ jobs:
         echo "image=$IMAGE_URI" >> "$GITHUB_OUTPUT"
 
     - name: Render ECS task definition
+      id: render-task
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: ecs-task-def.json
@@ -53,7 +54,7 @@ jobs:
     - name: Deploy to Amazon ECS
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
-        task-definition: ecs-task-def.json
+        task-definition: ${{ steps.render-task.outputs.task-definition }}
         service: gogrub-backend-service
         cluster: gogrub-cluster
         wait-for-service-stability: false
