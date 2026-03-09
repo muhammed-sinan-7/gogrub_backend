@@ -21,7 +21,7 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
        
         await self.accept(subprotocol="jwt")
 
-        print("✅ WS CONNECTED:", user.email)
+        
 
     async def disconnect(self, close_code):
       
@@ -31,7 +31,7 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
                 self.channel_name
             )
 
-        print("⚠️ WS DISCONNECTED:", close_code)
+        
 
     async def notify(self, event):
         await self.send_json(event["data"])

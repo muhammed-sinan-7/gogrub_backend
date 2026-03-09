@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from datetime import timedelta
 from pathlib import Path
-
 import cloudinary
 import cloudinary.api
 import cloudinary.uploader
@@ -25,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 AUTH_USER_MODEL = "users.CustomUser"
 
-load_dotenv()
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GEMINI_API_KEY = config("GEMINI_API_KEY")
 
@@ -196,12 +195,12 @@ CHANNEL_LAYERS = {
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ["DB_NAME"],
-        "USER": os.environ["DB_USER"],
-        "PASSWORD": os.environ["DB_PASSWORD"],
-        "HOST": os.environ["DB_HOST"], 
-        "PORT": "5432",
+        "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.postgresql"),
+        "NAME": BASE_DIR / "db.sqlite3" if os.getenv("DB_ENGINE") == "django.db.backends.sqlite3" else os.getenv("DB_NAME", "gogrub_db"),
+        "USER": os.getenv("DB_USER", "gogrub_user"),
+        "PASSWORD": os.getenv("DB_PASSWORD", "gogrub000"),
+        "HOST": os.getenv("DB_HOST", "127.0.0.1"), 
+        "PORT": os.getenv("DB_PORT", "5432"),
     }
 }
 

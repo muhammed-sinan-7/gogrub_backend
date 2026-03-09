@@ -14,6 +14,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.http import HttpResponse
 from orders.models import Order, OrderItem
@@ -22,6 +23,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import CustomUser
 from .serializers import LoginSerializer, RegisterSerializer, USerSerializer
 from django.contrib.auth import authenticate
+
 
 class PasswordResetRequestView(APIView):
     def post(self, request):
@@ -106,16 +108,20 @@ class LoginAPIView(APIView):
 
         refresh = RefreshToken.for_user(user)
 
-        return Response({
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "fullname": getattr(user, "fullname", None),
-                "is_staff": user.is_staff,
-            }
-        }, status=200)
+        return Response(
+            {
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "fullname": getattr(user, "fullname", None),
+                    "is_staff": user.is_staff,
+                },
+            },
+            status=200,
+        )
+
 
 # class LogoutAPIView(APIView):
 
@@ -157,6 +163,7 @@ class ProfileAPIView(APIView):
 
 
 class GoogleLoginAPIView(APIView):
+
     def post(self, request):
         token = request.data.get("id_token")
 
@@ -168,11 +175,14 @@ class GoogleLoginAPIView(APIView):
                 token, requests.Request(), settings.GOOGLE_CLIENT_ID
             )
 
-            email = idinfo.get("email")
+            if not idinfo.get("email_verified"):
+                return Response({"detail": "Email not verified"}, status=400)
+
+            email = idinfo["email"]
             name = idinfo.get("name", "")
 
             user, created = CustomUser.objects.get_or_create(
-                email=email, defaults={"username": email, "first_name": name}
+                email=email, defaults={"fullname": name, "username": email}
             )
 
             refresh = RefreshToken.for_user(user)
@@ -189,26 +199,14 @@ class GoogleLoginAPIView(APIView):
                 }
             )
 
-        except ValueError:
-            return Response(
-                {"detail": "Invalid Google token"}, status=status.HTTP_401_UNAUTHORIZED
-            )
-
-
-
-
-
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 def health(request):
     return JsonResponse({"status": "ok"})
 
-# users/views.py
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
 
 @api_view(["GET"])
 def version(request):
-    return Response({
-        "version": "users-auth-2026-01-31-ecs-v1"
-    })
+    return Response({"version": "users-auth-2026-01-31-ecs-v1"})

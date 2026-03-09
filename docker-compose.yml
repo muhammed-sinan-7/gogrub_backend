@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: gogrub_user
       POSTGRES_PASSWORD: gogrub000
     ports:
-      - "5100:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -22,7 +22,7 @@ services:
     image: redis:alpine
     container_name: backend-redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s

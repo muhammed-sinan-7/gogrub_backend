@@ -66,7 +66,7 @@ class ProductDetailAPIView(APIView):
         serializer = ProductCreateUpdateSerialzier(product, data=request.data,partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data)
+        return Response(serializer.data,status=status.HTTP_201_CREATED)
 
 
 class ProductDeleteAPIView(APIView):
