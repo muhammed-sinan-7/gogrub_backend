@@ -195,6 +195,7 @@ class GoogleLoginAPIView(APIView):
                         "id": user.id,
                         "email": user.email,
                         "is_staff": user.is_staff,
+                        "is_active":user.is_active,
                     },
                 }
             )
