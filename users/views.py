@@ -182,7 +182,7 @@ class GoogleLoginAPIView(APIView):
             name = idinfo.get("name", "")
 
             user, created = CustomUser.objects.get_or_create(
-                email=email, defaults={"fullname": name, "username": email}
+                email=email, defaults={"fullname": name}
             )
 
             refresh = RefreshToken.for_user(user)
