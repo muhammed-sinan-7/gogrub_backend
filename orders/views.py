@@ -236,7 +236,7 @@ class VerifyRazorpayPaymentAPIView(APIView):
 
             return Response(
                 {"success": True, "message": "Payment verified successfully"},
-                sttaus=status.HTTP_200_OK,
+                status=status.HTTP_200_OK,
             )
 
         except razorpay.errors.SignatureVerificationError:
